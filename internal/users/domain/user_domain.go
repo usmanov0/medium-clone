@@ -13,8 +13,7 @@ type User struct {
 }
 
 type NewUser struct {
-	UserName  string
-	Email     string
-	Password  string
-	CreatedAt time.Time
+	UserName string
+	Email    string
+	Password string
 }
