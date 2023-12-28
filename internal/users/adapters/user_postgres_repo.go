@@ -47,8 +47,23 @@ func (u *userRepository) ExistsByMail(email string) (bool, error) {
 }
 
 func (u *userRepository) Search(criteria string) ([]*domain.User, error) {
-	//TODO implement me
-	panic("implement me")
+	query := "SELECT u.id,u.user_name,u.email,u.bio FROM users u WHERE user_name ILIKE $1 OR email ILIKE $1"
+	rows, err := u.db.Query(query, "%"+criteria+"%")
+	if err != nil {
+		return nil, err
+	}
+	var users []*domain.User
+	for rows.Next() {
+		var user domain.User
+		if err := rows.Scan(&user.Id, &user.UserName, &user.Email, &user.Bio); err != nil {
+			return nil, err
+		}
+		users = append(users, &user)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return users, nil
 }
 
 func (u *userRepository) Update(userID int, user *domain.User) error {
