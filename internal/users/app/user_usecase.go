@@ -27,7 +27,7 @@ func NewUserUseCase(userRepo domain.UserRepository) UserUseCase {
 func (u *userUseCase) SignUpUser(user *domain.NewUser) (int, error) {
 	userFactory := u.userFac.CreateNewUser(user)
 
-	err := validateUserInfoForSignUp(
+	err := domain.ValidateUserInfoForSignUp(
 		userFactory.UserName,
 		userFactory.Email,
 		userFactory.Password,
@@ -35,7 +35,7 @@ func (u *userUseCase) SignUpUser(user *domain.NewUser) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	err = validateEmail(user.Email)
+	err = domain.ValidateEmail(user.Email)
 	if err != nil {
 		return 0, errors.ErrInvalidEmailFormat
 	}
@@ -47,7 +47,7 @@ func (u *userUseCase) SignUpUser(user *domain.NewUser) (int, error) {
 }
 
 func (u *userUseCase) SignInUser(email, password string) (bool, error) {
-	err := validateUserInfoForSignIn(email, password)
+	err := domain.ValidateUserInfoForSignIn(email, password)
 
 	if err != nil {
 		return false, err
