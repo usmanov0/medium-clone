@@ -56,7 +56,7 @@ func (u *userRepository) Search(criteria string) ([]*domain.User, error) {
 	for rows.Next() {
 		var user domain.User
 		if err := rows.Scan(&user.Id, &user.UserName, &user.Email, &user.Bio); err != nil {
-			return nil, err
+			return nil, errors.ErrScanRows
 		}
 		users = append(users, &user)
 	}
