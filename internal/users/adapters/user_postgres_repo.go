@@ -1,13 +1,13 @@
 package adapters
 
 import (
+	"example.com/my-medium-clone/internal/errors"
 	"example.com/my-medium-clone/internal/users/domain"
 	"github.com/jackc/pgx"
 )
 
 type userRepository struct {
-	db      *pgx.Conn
-	userFac domain.UserFactory
+	db *pgx.Conn
 }
 
 func NewUserRepo(db *pgx.Conn) domain.UserRepository {
@@ -16,17 +16,45 @@ func NewUserRepo(db *pgx.Conn) domain.UserRepository {
 
 func (u *userRepository) Save(user *domain.User) (int, error) {
 	query := `
-		INSERT INTO users(user_name, email, password)
-		VALUES($1, $2, $3)
+		INSERT INTO users(user_name, email, password,bio)
+		VALUES($1, $2, $3, $4)
 		RETURNING id
 	`
 
 	var userID int
-	err := u.db.QueryRow(query, user.UserName, user.Email, user.Password).Scan(&userID)
+	err := u.db.QueryRow(query, user.UserName, user.Email, user.Password, user.Bio).Scan(&userID)
 	if err != nil {
 		return 0, err
 	}
 	return userID, nil
+}
+
+func (u *userRepository) GetFollowers(userId int) ([]*domain.User, error) {
+	query := `
+		SELECT u.id, u.user_name, u.email
+		FROM users u
+		INNER JOIN follows f ON u.id = f.following.id
+		WHERE f.followed_by_id = $1`
+
+	rows, err := u.db.Query(query, userId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var followers []*domain.User
+	for rows.Next() {
+		follower := &domain.User{}
+		err := rows.Scan(&follower.Id, follower.UserName, follower.Email)
+		if err != nil {
+			return nil, err
+		}
+		followers = append(followers, follower)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return followers, nil
 }
 
 func (u *userRepository) FindById(id int) (*domain.User, error) {
@@ -48,6 +76,30 @@ func (u *userRepository) FindById(id int) (*domain.User, error) {
 
 }
 
+func (u *userRepository) FindOneByEmail(email string) (*domain.User, error) {
+	var user domain.User
+
+	query := `
+		SELECT id,user_name,email,password,bio,created_at,updated_at	
+		FROM users
+		WHERE email = $1`
+
+	err := u.db.QueryRow(query, email).Scan(
+		&user.Id,
+		&user.UserName,
+		&user.Email,
+		&user.Password,
+		&user.Bio,
+		&user.CreatedAt,
+		&user.UpdatedAt)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
 func (u *userRepository) ExistsByMail(email string) (bool, error) {
 	query := `
 		SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)
@@ -61,27 +113,27 @@ func (u *userRepository) ExistsByMail(email string) (bool, error) {
 	return exists, nil
 }
 
-func (u *userRepository) Search(criteria string) ([]*domain.User, error) {
+func (u *userRepository) Search(criteria string) ([]domain.User, error) {
 	query := `
 		SELECT id, user_name, email, bio
 		FROM users
 		WHERE user_name ILIKE $1 OR email ILIKE $1
 	`
 
-	rows, err := u.db.Query(query, "%"+criteria+"%")
+	rows, err := u.db.Query(query, "%%"+criteria+"%%")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var users []*domain.User
+	var users []domain.User
 	for rows.Next() {
 		var user domain.User
 		err := rows.Scan(&user.Id, &user.UserName, &user.Email, &user.Bio)
 		if err != nil {
 			return nil, err
 		}
-		users = append(users, &user)
+		users = append(users, user)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -113,7 +165,7 @@ func (u *userRepository) Delete(id int) error {
 
 	_, err := u.db.Exec(query, id)
 	if err != nil {
-		return err
+		return errors.ErrFailedDeleteAccount
 	}
 	return nil
 }
