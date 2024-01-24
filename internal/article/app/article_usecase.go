@@ -55,10 +55,6 @@ func (a *articleUseCase) GetArticlesByAuthor(authorID int) ([]*domain.Article, e
 }
 
 func (a *articleUseCase) UpdateArticle(article *domain.Article) error {
-	if err := domain.ValidateArticle(article); err != nil {
-		return err
-	}
-
 	err := a.articleRepo.Update(article)
 	if err != nil {
 		return err
