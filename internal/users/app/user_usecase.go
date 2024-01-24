@@ -1,16 +1,18 @@
 package app
 
 import (
+	"example.com/my-medium-clone/internal/errors"
 	"example.com/my-medium-clone/internal/users/domain"
-	"example.com/my-medium-clone/internal/users/errors"
 	"fmt"
+	"log"
 )
 
 type UserUseCase interface {
 	SignUpUser(user *domain.NewUser) (int, error)
 	SignInUser(email, password string) (bool, error)
 	GetUserById(id int) (*domain.User, error)
-	ListUsers(criteria string) ([]*domain.User, error)
+	GetUserByEmail(email string) (*domain.User, error)
+	ListUsers(criteria string) ([]domain.User, error)
 	UpdateUser(userID int, user *domain.User) error
 	DeleteUserAccount(id int) error
 }
@@ -32,7 +34,9 @@ func (u *userUseCase) SignUpUser(user *domain.NewUser) (int, error) {
 		userFactory.Email,
 		userFactory.Password,
 	)
+	log.Println(err)
 	if err != nil {
+		log.Println("Here")
 		return 0, err
 	}
 	err = domain.ValidateEmail(user.Email)
@@ -43,6 +47,7 @@ func (u *userUseCase) SignUpUser(user *domain.NewUser) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+
 	return id, nil
 }
 
@@ -67,26 +72,35 @@ func (u *userUseCase) GetUserById(id int) (*domain.User, error) {
 	return user, nil
 }
 
-func (u *userUseCase) ListUsers(criteria string) ([]*domain.User, error) {
+func (u *userUseCase) GetUserByEmail(email string) (*domain.User, error) {
+	user, err := u.userRepo.FindOneByEmail(email)
+	if err != nil {
+		return nil, errors.ErrUserNotFound
+	}
+
+	return user, nil
+}
+
+func (u *userUseCase) ListUsers(criteria string) ([]domain.User, error) {
 	userList, err := u.userRepo.Search(criteria)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve list of users %v", err)
 	}
+
 	return userList, nil
 }
 
-func (u *userUseCase) UpdateUser(userId int, updatedUser *domain.User) error {
-	var id int
-	existingUser, err := u.userRepo.FindById(id)
+func (u *userUseCase) UpdateUser(userId int, userUpdate *domain.User) error {
+	existingUser, err := u.userRepo.FindById(userId)
 	if err != nil {
 		return errors.ErrUserNotFound
 	}
 
-	existingUser.UserName = updatedUser.UserName
-	existingUser.Password = updatedUser.Password
-	existingUser.Bio = updatedUser.Bio
+	existingUser.UserName = userUpdate.UserName
+	existingUser.Password = userUpdate.Password
+	existingUser.Bio = userUpdate.Bio
 
-	err = u.userRepo.Update(userId, updatedUser)
+	err = u.userRepo.Update(userId, userUpdate)
 	if err != nil {
 		return errors.ErrUserUpdateFailed
 	}
