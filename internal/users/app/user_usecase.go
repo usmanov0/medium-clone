@@ -5,6 +5,7 @@ import (
 	"example.com/my-medium-clone/internal/users/domain"
 	"fmt"
 	"log"
+	"time"
 )
 
 type UserUseCase interface {
@@ -96,9 +97,23 @@ func (u *userUseCase) UpdateUser(userId int, userUpdate *domain.User) error {
 		return errors.ErrUserNotFound
 	}
 
-	existingUser.UserName = userUpdate.UserName
-	existingUser.Password = userUpdate.Password
-	existingUser.Bio = userUpdate.Bio
+	if userUpdate.UserName != existingUser.UserName {
+		existingUser.UserName = userUpdate.UserName
+	} else {
+		return errors.ErrShouldBeDifferentName
+	}
+	if userUpdate.Password != existingUser.Password {
+		existingUser.Password = userUpdate.Password
+	} else {
+		return errors.ErrShouldBeDifferentPassword
+	}
+	if userUpdate.Bio != existingUser.Bio {
+		existingUser.Bio = userUpdate.Bio
+	} else {
+		return errors.ErrShouldBeDifferentBio
+	}
+
+	existingUser.UpdatedAt = time.Now()
 
 	err = u.userRepo.Update(userId, userUpdate)
 	if err != nil {

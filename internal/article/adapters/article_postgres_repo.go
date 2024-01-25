@@ -2,6 +2,7 @@ package adapters
 
 import (
 	"example.com/my-medium-clone/internal/article/domain"
+	"example.com/my-medium-clone/internal/errors"
 	"github.com/jackc/pgx"
 )
 
@@ -33,7 +34,7 @@ func (a *articleRepository) Save(article *domain.Article) (int, error) {
 	).Scan(&articleId)
 
 	if err != nil {
-		return 0, err
+		return 0, errors.ErrIdScanFailed
 	}
 
 	return articleId, nil
@@ -61,7 +62,7 @@ func (a *articleRepository) FindById(id int) (*domain.Article, error) {
 		&article.UpdatedAt)
 
 	if err != nil {
-		return nil, err
+		return nil, errors.ErrScanRows
 	}
 
 	return &article, nil
@@ -95,7 +96,7 @@ func (a *articleRepository) FindByAuthor(authorID int) ([]domain.Article, error)
 			&article.UpdatedAt,
 		)
 		if err != nil {
-			return nil, err
+			return nil, errors.ErrScanRows
 		}
 		articles = append(articles, article)
 	}
@@ -133,7 +134,7 @@ func (a *articleRepository) FindByCategory(categoryID int) ([]domain.Article, er
 			&article.UpdatedAt,
 		)
 		if err != nil {
-			return nil, err
+			return nil, errors.ErrScanRows
 		}
 		articles = append(articles, article)
 	}
@@ -170,7 +171,7 @@ func (a *articleRepository) FindPublishedArticles() ([]domain.Article, error) {
 			&article.UpdatedAt,
 		)
 		if err != nil {
-			return nil, err
+			return nil, errors.ErrScanRows
 		}
 		articles = append(articles, article)
 	}
@@ -197,7 +198,7 @@ func (a *articleRepository) Update(article *domain.Article) error {
 		article.Id,
 	)
 	if err != nil {
-		return err
+		return errors.ErrFailedExecuteQuery
 	}
 	return nil
 }
@@ -210,7 +211,7 @@ func (a *articleRepository) Delete(id int) error {
 
 	_, err := a.db.Exec(query, id)
 	if err != nil {
-		return err
+		return errors.ErrFailedExecuteQuery
 	}
 	return nil
 }

@@ -24,7 +24,7 @@ func (u *userRepository) Save(user *domain.User) (int, error) {
 	var userID int
 	err := u.db.QueryRow(query, user.UserName, user.Email, user.Password, user.Bio).Scan(&userID)
 	if err != nil {
-		return 0, err
+		return 0, errors.ErrIdScanFailed
 	}
 	return userID, nil
 }
@@ -47,7 +47,7 @@ func (u *userRepository) GetFollowers(userId int) ([]*domain.User, error) {
 		follower := &domain.User{}
 		err := rows.Scan(&follower.Id, follower.UserName, follower.Email)
 		if err != nil {
-			return nil, err
+			return nil, errors.ErrScanRows
 		}
 		followers = append(followers, follower)
 	}
@@ -70,7 +70,7 @@ func (u *userRepository) FindById(id int) (*domain.User, error) {
 		&user.Bio, &user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
-		return nil, err
+		return nil, errors.ErrScanRows
 	}
 	return &user, nil
 
@@ -94,7 +94,7 @@ func (u *userRepository) FindOneByEmail(email string) (*domain.User, error) {
 		&user.UpdatedAt)
 
 	if err != nil {
-		return nil, err
+		return nil, errors.ErrScanRows
 	}
 
 	return &user, nil
@@ -108,7 +108,7 @@ func (u *userRepository) ExistsByMail(email string) (bool, error) {
 	var exists bool
 	err := u.db.QueryRow(query, email).Scan(&exists)
 	if err != nil {
-		return false, err
+		return false, errors.ErrIdScanFailed
 	}
 	return exists, nil
 }
@@ -131,7 +131,7 @@ func (u *userRepository) Search(criteria string) ([]domain.User, error) {
 		var user domain.User
 		err := rows.Scan(&user.Id, &user.UserName, &user.Email, &user.Bio)
 		if err != nil {
-			return nil, err
+			return nil, errors.ErrScanRows
 		}
 		users = append(users, user)
 	}
@@ -146,13 +146,13 @@ func (u *userRepository) Search(criteria string) ([]domain.User, error) {
 func (u *userRepository) Update(userID int, user *domain.User) error {
 	query := `
 		UPDATE users
-		SET user_name = $1, password = $2, bio = $3
-		WHERE id = $4
+		SET user_name = $1, password = $2, bio = $3, updated_at = $4
+		WHERE id = $5
 	`
 
-	_, err := u.db.Exec(query, user.UserName, user.Password, user.Bio, userID)
+	_, err := u.db.Exec(query, user.UserName, user.Password, user.Bio, user.UpdatedAt, userID)
 	if err != nil {
-		return err
+		return errors.ErrFailedExecuteQuery
 	}
 	return nil
 }

@@ -2,6 +2,7 @@ package adapters
 
 import (
 	"example.com/my-medium-clone/internal/category/domain"
+	"example.com/my-medium-clone/internal/errors"
 	"github.com/jackc/pgx"
 )
 
@@ -25,7 +26,7 @@ func (c *categoryRepository) Save(category *domain.Category) (int, error) {
 		category.Name,
 	).Scan(categoryId)
 	if err != nil {
-		return 0, err
+		return 0, errors.ErrIdScanFailed
 	}
 	return categoryId, nil
 }
@@ -43,7 +44,7 @@ func (c *categoryRepository) GetCategoryById(id int) (*domain.Category, error) {
 		id).Scan(&category.Id, &category.Name)
 
 	if err != nil {
-		return nil, err
+		return nil, errors.ErrScanRows
 	}
 
 	return &category, nil
@@ -57,7 +58,7 @@ func (c *categoryRepository) UpdateCategory(id int, category *domain.Category) e
 
 	_, err := c.db.Exec(query, id, category.Name)
 	if err != nil {
-		return err
+		return errors.ErrFailedExecuteQuery
 	}
 	return nil
 }
@@ -69,7 +70,7 @@ func (c *categoryRepository) Delete(id int) error {
 
 	_, err := c.db.Exec(query, id)
 	if err != nil {
-		return err
+		return errors.ErrFailedExecuteQuery
 	}
 	return nil
 }
