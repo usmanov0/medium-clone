@@ -1,6 +1,7 @@
 package adapter
 
 import (
+	"example.com/my-medium-clone/internal/errors"
 	"example.com/my-medium-clone/internal/follows/domain"
 	"github.com/jackc/pgx"
 )
@@ -22,7 +23,7 @@ func (f *followRepository) Save(follow *domain.Follow) (int, error) {
 	var id int
 	err := f.db.QueryRow(query, follow.FollowedById).Scan(&id)
 	if err != nil {
-		return 0, err
+		return 0, errors.ErrIdScanFailed
 	}
 	return id, nil
 }
@@ -37,7 +38,7 @@ func (f *followRepository) IsFollowing(follow *domain.Follow) (bool, error) {
 	var exists bool
 	err := f.db.QueryRow(query, follow.FollowingId, follow.FollowedById).Scan(&exists)
 	if err != nil {
-		return false, err
+		return false, errors.ErrIdScanFailed
 	}
 	return exists, nil
 }
@@ -49,7 +50,7 @@ func (f *followRepository) Unfollow(follow *domain.Follow) error {
 
 	_, err := f.db.Exec(query, follow.FollowedById, follow.FollowedById)
 	if err != nil {
-		return err
+		return errors.ErrFailedExecuteQuery
 	}
 	return nil
 }

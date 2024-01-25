@@ -47,7 +47,7 @@ func (u *userRepository) GetFollowers(userId int) ([]*domain.User, error) {
 		follower := &domain.User{}
 		err := rows.Scan(&follower.Id, follower.UserName, follower.Email)
 		if err != nil {
-			return nil, errors.ErrIdScanFailed
+			return nil, errors.ErrScanRows
 		}
 		followers = append(followers, follower)
 	}
@@ -70,7 +70,7 @@ func (u *userRepository) FindById(id int) (*domain.User, error) {
 		&user.Bio, &user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
-		return nil, err
+		return nil, errors.ErrScanRows
 	}
 	return &user, nil
 
@@ -94,7 +94,7 @@ func (u *userRepository) FindOneByEmail(email string) (*domain.User, error) {
 		&user.UpdatedAt)
 
 	if err != nil {
-		return nil, errors.ErrIdScanFailed
+		return nil, errors.ErrScanRows
 	}
 
 	return &user, nil
@@ -131,7 +131,7 @@ func (u *userRepository) Search(criteria string) ([]domain.User, error) {
 		var user domain.User
 		err := rows.Scan(&user.Id, &user.UserName, &user.Email, &user.Bio)
 		if err != nil {
-			return nil, errors.ErrIdScanFailed
+			return nil, errors.ErrScanRows
 		}
 		users = append(users, user)
 	}
@@ -152,7 +152,7 @@ func (u *userRepository) Update(userID int, user *domain.User) error {
 
 	_, err := u.db.Exec(query, user.UserName, user.Password, user.Bio, user.UpdatedAt, userID)
 	if err != nil {
-		return err
+		return errors.ErrFailedExecuteQuery
 	}
 	return nil
 }
