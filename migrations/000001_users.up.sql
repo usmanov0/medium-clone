@@ -1,9 +1,0 @@
-CREATE TABLE "users"(
-    "id" SERIAL PRIMARY KEY,
-    "user_name" VARCHAR(255) NOT NULL,
-    "email" VARCHAR(55) NOT NULL,
-    "password" VARCHAR(55) NOT NULL,
-    "bio" VARCHAR(255),
-    "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
