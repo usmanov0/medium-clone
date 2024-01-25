@@ -1,6 +1,8 @@
 package domain
 
-import "example.com/my-medium-clone/internal/users/errors"
+import (
+	"example.com/my-medium-clone/internal/errors"
+)
 
 func ValidateArticle(article *Article) error {
 	if len(article.Title) == 0 {

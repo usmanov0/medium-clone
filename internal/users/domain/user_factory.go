@@ -1,7 +1,7 @@
 package domain
 
 import (
-	"example.com/my-medium-clone/internal/users/errors"
+	"example.com/my-medium-clone/internal/errors"
 	"regexp"
 	"strings"
 	"time"
@@ -53,7 +53,7 @@ func validatePassword(password string) error {
 
 	var (
 		upperCase = regexp.MustCompile(`[A-Z]`)
-		lowerCase = regexp.MustCompile("`[a-z]`")
+		lowerCase = regexp.MustCompile(`[a-z]`)
 		digit     = regexp.MustCompile(`[0-9]`)
 	)
 	if !upperCase.MatchString(password) || !lowerCase.MatchString(password) {

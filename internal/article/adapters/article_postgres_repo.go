@@ -35,6 +35,7 @@ func (a *articleRepository) Save(article *domain.Article) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+
 	return articleId, nil
 }
 
@@ -66,7 +67,7 @@ func (a *articleRepository) FindById(id int) (*domain.Article, error) {
 	return &article, nil
 }
 
-func (a *articleRepository) FindByAuthor(authorID int) ([]*domain.Article, error) {
+func (a *articleRepository) FindByAuthor(authorID int) ([]domain.Article, error) {
 	query := `
 		SELECT id, title, body, author_id, category_id, is_draft, published_at, created_at, updated_at
 		FROM articles
@@ -79,7 +80,7 @@ func (a *articleRepository) FindByAuthor(authorID int) ([]*domain.Article, error
 
 	defer rows.Close()
 
-	var articles []*domain.Article
+	var articles []domain.Article
 	for rows.Next() {
 		var article domain.Article
 		err := rows.Scan(
@@ -96,7 +97,7 @@ func (a *articleRepository) FindByAuthor(authorID int) ([]*domain.Article, error
 		if err != nil {
 			return nil, err
 		}
-		articles = append(articles, &article)
+		articles = append(articles, article)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -104,7 +105,7 @@ func (a *articleRepository) FindByAuthor(authorID int) ([]*domain.Article, error
 	return articles, nil
 }
 
-func (a *articleRepository) FindByCategory(categoryID int) ([]*domain.Article, error) {
+func (a *articleRepository) FindByCategory(categoryID int) ([]domain.Article, error) {
 	query := `
 		SELECT id, title, body, author_id, category_id, is_draft, published_at, created_at, updated_at
 		FROM articles
@@ -117,7 +118,7 @@ func (a *articleRepository) FindByCategory(categoryID int) ([]*domain.Article, e
 	}
 	defer rows.Close()
 
-	var articles []*domain.Article
+	var articles []domain.Article
 	for rows.Next() {
 		var article domain.Article
 		err := rows.Scan(
@@ -134,7 +135,7 @@ func (a *articleRepository) FindByCategory(categoryID int) ([]*domain.Article, e
 		if err != nil {
 			return nil, err
 		}
-		articles = append(articles, &article)
+		articles = append(articles, article)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -142,7 +143,7 @@ func (a *articleRepository) FindByCategory(categoryID int) ([]*domain.Article, e
 	return articles, nil
 }
 
-func (a *articleRepository) FindPublishedArticles() ([]*domain.Article, error) {
+func (a *articleRepository) FindPublishedArticles() ([]domain.Article, error) {
 	query := `
 		SELECT id, title, body, author_id, category_id, is_draft, published_at, created_at, updated_at
 		FROM articles
@@ -154,7 +155,7 @@ func (a *articleRepository) FindPublishedArticles() ([]*domain.Article, error) {
 	}
 	defer rows.Close()
 
-	var articles []*domain.Article
+	var articles []domain.Article
 	for rows.Next() {
 		var article domain.Article
 		err := rows.Scan(
@@ -171,7 +172,7 @@ func (a *articleRepository) FindPublishedArticles() ([]*domain.Article, error) {
 		if err != nil {
 			return nil, err
 		}
-		articles = append(articles, &article)
+		articles = append(articles, article)
 	}
 
 	if err := rows.Err(); err != nil {
