@@ -8,7 +8,7 @@ import (
 type ArticleUseCase interface {
 	CreateArticle(article *domain.Article) (int, error)
 	GetArticleByID(id int) (*domain.Article, error)
-	GetArticlesByAuthor(authorID int) ([]*domain.Article, error)
+	GetArticlesByAuthor(authorID int) ([]domain.Article, error)
 	UpdateArticle(article *domain.Article) error
 	DeleteArticle(id int) error
 }
@@ -45,7 +45,7 @@ func (a *articleUseCase) GetArticleByID(id int) (*domain.Article, error) {
 	return article, nil
 }
 
-func (a *articleUseCase) GetArticlesByAuthor(authorID int) ([]*domain.Article, error) {
+func (a *articleUseCase) GetArticlesByAuthor(authorID int) ([]domain.Article, error) {
 	articles, err := a.articleRepo.FindByAuthor(authorID)
 	if err != nil {
 		return nil, err
