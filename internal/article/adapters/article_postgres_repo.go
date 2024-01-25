@@ -2,6 +2,7 @@ package adapters
 
 import (
 	"example.com/my-medium-clone/internal/article/domain"
+	"example.com/my-medium-clone/internal/errors"
 	"github.com/jackc/pgx"
 )
 
@@ -33,7 +34,7 @@ func (a *articleRepository) Save(article *domain.Article) (int, error) {
 	).Scan(&articleId)
 
 	if err != nil {
-		return 0, err
+		return 0, errors.ErrIdScanFailed
 	}
 
 	return articleId, nil
