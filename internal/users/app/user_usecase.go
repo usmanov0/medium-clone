@@ -2,15 +2,15 @@ package app
 
 import (
 	"example.com/my-medium-clone/internal/errors"
+	"example.com/my-medium-clone/internal/pkg/utils"
 	"example.com/my-medium-clone/internal/users/domain"
 	"fmt"
-	"log"
 	"time"
 )
 
 type UserUseCase interface {
 	SignUpUser(user *domain.NewUser) (int, error)
-	SignInUser(email, password string) (bool, error)
+	SignIn(user *domain.SignInUser) (bool, error)
 	GetUserById(id int) (*domain.User, error)
 	GetUserByEmail(email string) (*domain.User, error)
 	ListUsers(criteria string) ([]domain.User, error)
@@ -20,7 +20,7 @@ type UserUseCase interface {
 
 type userUseCase struct {
 	userRepo domain.UserRepository
-	userFac  domain.UserFactory
+	userFac  *domain.UserFactory
 }
 
 func NewUserUseCase(userRepo domain.UserRepository) UserUseCase {
@@ -34,33 +34,41 @@ func (u *userUseCase) SignUpUser(user *domain.NewUser) (int, error) {
 		userFactory.UserName,
 		userFactory.Email,
 		userFactory.Password,
+		userFactory.Bio,
 	)
-	log.Println(err)
 	if err != nil {
-		log.Println("Here")
 		return 0, err
 	}
-	err = domain.ValidateEmail(user.Email)
+	err = utils.ValidateEmail(user.Email)
 	if err != nil {
 		return 0, errors.ErrInvalidEmailFormat
 	}
+
 	id, err := u.userRepo.Save(userFactory)
 	if err != nil {
 		return 0, err
 	}
-
 	return id, nil
 }
 
-func (u *userUseCase) SignInUser(email, password string) (bool, error) {
-	err := domain.ValidateUserInfoForSignIn(email, password)
-
+func (u *userUseCase) SignIn(user *domain.SignInUser) (bool, error) {
+	err := utils.ValidateUserInfoForSignIn(user.Email, user.Password)
 	if err != nil {
 		return false, err
 	}
-	exists, _ := u.userRepo.ExistsByMail(email)
+	exists, _ := u.userRepo.ExistsByMail(user.Email)
 	if !exists {
 		return false, errors.ErrUserNotFound
+	}
+
+	resp := u.userFac.SignInEmailUser(user)
+	hashedPassword, err := u.userRepo.SignIn(resp)
+	if err != nil {
+		return false, nil
+	}
+	err = utils.CheckPassword(resp.Password, hashedPassword)
+	if err != nil {
+		return false, nil
 	}
 	return true, nil
 }

@@ -1,7 +1,8 @@
 package domain
 
 type UserRepository interface {
-	Save(user *User) (int, error)
+	Save(user *NewUserRepo) (int, error)
+	SignIn(repo *SignInRepo) (string, error)
 	GetFollowers(userId int) ([]*User, error)
 	FindById(id int) (*User, error)
 	FindOneByEmail(email string) (*User, error)

@@ -5,7 +5,6 @@ import (
 	"example.com/my-medium-clone/internal/errors"
 	"example.com/my-medium-clone/internal/users/app"
 	"example.com/my-medium-clone/internal/users/domain"
-	"example.com/my-medium-clone/internal/users/jwt"
 	"fmt"
 	"log"
 	"net/http"
@@ -30,6 +29,7 @@ func (b *UserHandler) SignUpUser(w http.ResponseWriter, r *http.Request) {
 	id, err := b.UserUseCase.SignUpUser(&newUser)
 	if err != nil {
 		http.Error(w, "failed to create a new user", http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -37,37 +37,37 @@ func (b *UserHandler) SignUpUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(id)
 }
 
-func (b *UserHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
-	var userReq domain.SignInUser
-
-	err := json.NewDecoder(r.Body).Decode(&userReq)
-	if err != nil {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
-	}
-
-	ok, err := b.UserUseCase.SignInUser(userReq.Email, userReq.Password)
-	if err != nil {
-		http.Error(w, "Wrong email or password", http.StatusInternalServerError)
-	}
-
-	if ok {
-		token, err := jwt.CreateToken(userReq.Email)
-		if err != nil {
-			http.Error(w, "email not found: ", http.StatusInternalServerError)
-			return
-		}
-		response := map[string]string{
-			"access_token": token,
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(response)
-	} else {
-		http.Error(w, "bad credentials", http.StatusUnauthorized)
-	}
-}
+//func (b *UserHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
+//	var userReq domain.SignInUser
+//
+//	err := json.NewDecoder(r.Body).Decode(&userReq)
+//	if err != nil {
+//		http.Error(w, "Invalid request", http.StatusBadRequest)
+//		return
+//	}
+//
+//	ok, err := b.UserUseCase.SignInUser(userReq.Email, userReq.Password)
+//	if err != nil {
+//		http.Error(w, "Wrong email or password", http.StatusInternalServerError)
+//	}
+//
+//	if ok {
+//		token, err := jwt.CreateToken(userReq.Email)
+//		if err != nil {
+//			http.Error(w, "email not found: ", http.StatusInternalServerError)
+//			return
+//		}
+//		response := map[string]string{
+//			"access_token": token,
+//		}
+//
+//		w.Header().Set("Content-Type", "application/json")
+//		w.WriteHeader(http.StatusOK)
+//		json.NewEncoder(w).Encode(response)
+//	} else {
+//		http.Error(w, "bad credentials", http.StatusUnauthorized)
+//	}
+//}
 
 func (b *UserHandler) GetById(w http.ResponseWriter, r *http.Request) {
 	var user *domain.User
@@ -94,7 +94,7 @@ func (b *UserHandler) GetById(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-func (b *UserHandler) GetByEmail(w http.ResponseWriter, r *http.Request) {
+func (b *UserHandler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 	var req domain.User
 
 	err := json.NewDecoder(r.Body).Decode(&req)

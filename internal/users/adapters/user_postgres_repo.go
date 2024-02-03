@@ -14,7 +14,7 @@ func NewUserRepo(db *pgx.Conn) domain.UserRepository {
 	return &userRepository{db: db}
 }
 
-func (u *userRepository) Save(user *domain.User) (int, error) {
+func (u *userRepository) Save(user *domain.NewUserRepo) (int, error) {
 	query := `
 		INSERT INTO users(user_name, email, password,bio)
 		VALUES($1, $2, $3, $4)
@@ -29,11 +29,26 @@ func (u *userRepository) Save(user *domain.User) (int, error) {
 	return userID, nil
 }
 
+func (u *userRepository) SignIn(user *domain.SignInRepo) (string, error) {
+	var hashedPassword string
+	query := `SELECT password
+	FROM users 
+	WHERE email = $1`
+
+	err := u.db.QueryRow(query, user.Email, hashedPassword)
+	if err != nil {
+		return "", nil
+	}
+
+	return hashedPassword, nil
+}
+
 func (u *userRepository) GetFollowers(userId int) ([]*domain.User, error) {
 	query := `
 		SELECT u.id, u.user_name, u.email
 		FROM users u
-		INNER JOIN follows f ON u.id = f.following.id
+		INNER JOIN follows f 
+		ON u.id = f.following.id
 		WHERE f.followed_by_id = $1`
 
 	rows, err := u.db.Query(query, userId)

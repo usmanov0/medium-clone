@@ -4,9 +4,10 @@ import (
 	articleDAO "example.com/my-medium-clone/internal/article/adapters"
 	"example.com/my-medium-clone/internal/article/app"
 	articleHandler "example.com/my-medium-clone/internal/article/ports/http/handler"
-	"example.com/my-medium-clone/internal/db_connection"
+	"example.com/my-medium-clone/internal/pkg/db_connection"
 	userDAO "example.com/my-medium-clone/internal/users/adapters"
 	usecase "example.com/my-medium-clone/internal/users/app"
+	"example.com/my-medium-clone/internal/users/jwt"
 	"example.com/my-medium-clone/internal/users/ports/http/handler"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -53,20 +54,21 @@ func httpServer() *chi.Mux {
 
 			r.Post("/sign-up-user", userHandler.SignUpUser)
 
-			r.Post("/sign-in-user", userHandler.SignInUser)
+			//r.Post("/sign-in-user", userHandler.SignInUser)
 
 			r.Get("/get-id", userHandler.GetById)
-
-			r.Get("/get-email", userHandler.GetByEmail)
 
 			r.Get("/criteria", userHandler.GetList)
 
 			r.Put("/put", userHandler.Update)
 
 			r.Delete("/delete", userHandler.Delete)
+
+			r.With(jwt.AuthMiddleWare).Get("/get-user{email}", userHandler.GetUserByEmail)
 		})
 
 		r.Route("/article", func(r chi.Router) {
+
 			r.Post("/create", articleHandler.Create)
 		})
 	})
