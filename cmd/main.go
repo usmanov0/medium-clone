@@ -3,7 +3,7 @@ package main
 import (
 	"example.com/my-medium-clone/internal/common/db_connection"
 	articleHandler "example.com/my-medium-clone/internal/ports/http/handler"
-	userDAO "example.com/my-medium-clone/internal/repoImpl"
+	"example.com/my-medium-clone/internal/repo/impl"
 	"example.com/my-medium-clone/internal/usecase"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -34,12 +34,12 @@ func httpServer() *chi.Mux {
 	router.Use(middleware.Logger)
 
 	var (
-		userRepo    = userDAO.NewUserRepo(db)
+		userRepo    = impl.NewUserRepo(db)
 		userUseCase = usecase.NewUserUseCase(userRepo)
 		userHandler = articleHandler.NewUserHandler(userUseCase)
 	)
 	var (
-		articleRepo    = userDAO.NewArticleRepo(db)
+		articleRepo    = impl.NewArticleRepo(db)
 		articleUseCase = usecase.NewArticleUseCase(articleRepo)
 		articleHandler = articleHandler.NewArticleHandler(articleUseCase)
 	)
