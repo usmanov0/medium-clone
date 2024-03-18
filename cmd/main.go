@@ -1,13 +1,10 @@
 package main
 
 import (
-	articleDAO "example.com/my-medium-clone/internal/article/adapters"
-	"example.com/my-medium-clone/internal/article/app"
-	articleHandler "example.com/my-medium-clone/internal/article/ports/http/handler"
-	"example.com/my-medium-clone/internal/db_connection"
-	userDAO "example.com/my-medium-clone/internal/users/adapters"
-	usecase "example.com/my-medium-clone/internal/users/app"
-	"example.com/my-medium-clone/internal/users/ports/http/handler"
+	"example.com/my-medium-clone/internal/common/db_connection"
+	articleHandler "example.com/my-medium-clone/internal/ports/http/handler"
+	userDAO "example.com/my-medium-clone/internal/repoImpl"
+	"example.com/my-medium-clone/internal/usecase"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"log"
@@ -39,11 +36,11 @@ func httpServer() *chi.Mux {
 	var (
 		userRepo    = userDAO.NewUserRepo(db)
 		userUseCase = usecase.NewUserUseCase(userRepo)
-		userHandler = handler.NewUserHandler(userUseCase)
+		userHandler = articleHandler.NewUserHandler(userUseCase)
 	)
 	var (
-		articleRepo    = articleDAO.NewArticleRepo(db)
-		articleUseCase = app.NewArticleUseCase(articleRepo)
+		articleRepo    = userDAO.NewArticleRepo(db)
+		articleUseCase = usecase.NewArticleUseCase(articleRepo)
 		articleHandler = articleHandler.NewArticleHandler(articleUseCase)
 	)
 
