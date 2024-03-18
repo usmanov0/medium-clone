@@ -1,4 +1,4 @@
-package repoImpl
+package impl
 
 import (
 	domain2 "example.com/my-medium-clone/internal/domain"
